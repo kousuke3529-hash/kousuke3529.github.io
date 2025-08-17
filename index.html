@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インタラクティブ・レポート：2025年大阪・関西万博（詳細版）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+
+        /* --- Custom Styles for a more polished look --- */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #0891b2; /* cyan-600 */
+            transform-origin: bottom right;
+            transition: transform 0.25s ease-out;
+        }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+        .nav-link.active {
+            color: #0e7490; /* cyan-700 */
+        }
+        
+        .filter-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .filter-btn-group .filter-btn.active {
+            background-color: #0e7490; /* cyan-700 */
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(14, 116, 144, 0.2);
+        }
+
+        .level-badge {
+            display: inline-block; padding: 0.25em 0.6em; font-size: 0.75rem; font-weight: 500; line-height: 1; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: 9999px;
+        }
+        .level-1 { background-color: #ccfbf1; color: #115e59; } /* teal */
+        .level-2 { background-color: #fef9c3; color: #854d0e; } /* yellow */
+        .level-3 { background-color: #ffedd5; color: #9a3412; } /* orange */
+        .level-4 { background-color: #fee2e2; color: #991b1b; } /* red */
+        .level-none { background-color: #e2e8f0; color: #475569; } /* slate */
+        
+        .sort-btn {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sort-indicator {
+             display: inline-block;
+             width: 1em;
+             text-align: center;
+             color: #94a3b8; /* slate-400 */
+             transition: transform 0.2s ease;
+        }
+        .sort-btn.active .sort-indicator {
+            color: #0e7490; /* cyan-700 */
+        }
+        .sort-btn.asc .sort-indicator {
+            transform: rotate(0deg);
+        }
+        .sort-btn.desc .sort-indicator {
+            transform: rotate(180deg);
+        }
+
+        /* --- Stylish Responsive Card-based Table --- */
+        @media (max-width: 767px) {
+            .responsive-table thead {
+                display: none;
+            }
+            .responsive-table tbody,
+            .responsive-table tr {
+                display: block;
+                width: 100%;
+            }
+            .responsive-table tr {
+                background-color: #ffffff;
+                border-radius: 0.75rem; /* rounded-xl */
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                margin-bottom: 1.5rem;
+                padding: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .responsive-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #f1f5f9; /* slate-100 */
+                text-align: right;
+            }
+             .responsive-table tr:last-child {
+                margin-bottom: 0;
+            }
+            .responsive-table td:last-child {
+                border-bottom: none;
+            }
+            .responsive-table td:before {
+                content: attr(data-label);
+                font-weight: 500;
+                color: #64748b; /* slate-500 */
+                text-align: left;
+                margin-right: 1rem;
+            }
+            /* Special styling for the first two items (Location & Name) */
+            .responsive-table td[data-label="場所"],
+            .responsive-table td[data-label="パビリオン名"] {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+                padding-bottom: 0.75rem;
+            }
+            .responsive-table td[data-label="場所"]::before,
+            .responsive-table td[data-label="パビリオン名"]::before {
+                font-size: 0.75rem;
+                color: #94a3b8; /* slate-400 */
+            }
+            .responsive-table td[data-label="場所"] {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #0e7490;
+                border: none;
+            }
+             .responsive-table td[data-label="パビリオン名"] {
+                font-size: 1.125rem;
+                font-weight: 700;
+                text-align: left;
+                line-height: 1.5;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="nav-header" class="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-cyan-800 tracking-tight">大阪・関西万博 2025</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-6">
+                        <a href="#info" class="nav-link text-slate-600 hover:text-cyan-700 px-1 py-2 text-sm font-medium">お知らせ</a>
+                        <a href="#overview" class="nav-link text-slate-600 hover:text-cyan-700 px-1 py-2 text-sm font-medium">概要</a>
+                        <a href="#details" class="nav-link text-slate-600 hover:text-cyan-700 px-1 py-2 text-sm font-medium">パビリオンガイド</a>
+                        <a href="https://www.expo2025.or.jp/wp/wp-content/themes/expo2025orjp_2022/assets/pdf/expo-map-index/map/map01_A3_color.pdf" target="_blank" rel="noopener noreferrer" class="nav-link text-slate-600 hover:text-cyan-700 px-1 py-2 text-sm font-medium">マップ</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500">
+                        <span class="sr-only">メインメニューを開く</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#info" class="nav-link-mobile text-slate-700 hover:bg-slate-100 block px-3 py-2 rounded-md text-base font-medium">お知らせ</a>
+                <a href="#overview" class="nav-link-mobile text-slate-700 hover:bg-slate-100 block px-3 py-2 rounded-md text-base font-medium">概要</a>
+                <a href="#details" class="nav-link-mobile text-slate-700 hover:bg-slate-100 block px-3 py-2 rounded-md text-base font-medium">パビリオンガイド</a>
+                <a href="https://www.expo2025.or.jp/wp/wp-content/themes/expo2025orjp_2022/assets/pdf/expo-map-index/map/map01_A3_color.pdf" target="_blank" rel="noopener noreferrer" class="nav-link-mobile text-slate-700 hover:bg-slate-100 block px-3 py-2 rounded-md text-base font-medium">マップ</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Smoking Area Information Section -->
+        <section id="info" class="py-12 sm:py-20 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-6">
+                    <a href="https://www.expo2025.or.jp/news/news-20250625-03/" target="_blank" rel="noopener noreferrer" class="text-cyan-700 hover:underline">
+                        会場内喫煙所の設置について
+                    </a>
+                </h2>
+                <div class="space-y-6 text-slate-700 leading-relaxed">
+                    <p>
+                        公益社団法人２０２５年日本国際博覧会協会は、来場者及び関係者の利便性を考慮し、新たに会場内に喫煙所を設置します。なお、万博会場は、喫煙所以外は禁煙です。
+                    </p>
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <h3 class="font-bold text-lg mb-2 text-slate-800">■会場内喫煙所</h3>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><span class="font-semibold">運用開始日：</span>2025年6月28日（土）</li>
+                            <li><span class="font-semibold">設置場所：</span>
+                                <ul class="list-disc list-inside ml-6">
+                                    <li>会場内リング北側</li>
+                                    <li>EXPOメッセ（WASSE）南側</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-lg">
+                        <h3 class="font-bold text-lg mb-2 text-slate-800">（ご参考）■既設の喫煙所（会場外喫煙所）</h3>
+                         <ul class="list-disc list-inside space-y-1">
+                            <li><span class="font-semibold">設置場所：</span>
+                                <ul class="list-disc list-inside ml-6">
+                                    <li>東ゲート施設東棟</li>
+                                    <li>東ゲート施設西棟　<span class="text-sm">※利用時間：8時～21時</span></li>
+                                </ul>
+                            </li>
+                            <li class="mt-2 text-sm text-slate-600">（東ゲート施設西棟喫煙所の施錠時は、東ゲート施設東棟喫煙所をご利用ください）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview" class="py-16 sm:py-24 text-center bg-slate-100">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="text-base font-semibold text-cyan-600 tracking-wider">2025.4.13 - 10.13 | 大阪・夢洲</p>
+                <h2 class="mt-4 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">いのち輝く未来社会のデザイン</h2>
+                <p class="mt-6 max-w-3xl mx-auto text-lg leading-8 text-slate-600">
+                    世界中の人々が、多様な価値観を認め合いながら、持続可能な未来を共に創造する。2025年大阪・関西万博は、未来社会の実験場として、地球規模の課題解決に向けた新たなアイデアと技術を発信します。
+                </p>
+            </div>
+        </section>
+        
+        <section id="details" class="py-16 sm:py-24 bg-slate-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h3 class="text-3xl sm:text-4xl font-bold text-slate-900">
+                        パビリオンガイド
+                        <a href="https://www.expo2025.or.jp/wp/wp-content/themes/expo2025orjp_2022/assets/pdf/expo-map-index/map/map01_A3_color.pdf" target="_blank" rel="noopener noreferrer" class="text-lg font-medium text-cyan-700 hover:underline ml-2">(マップPDF)</a>
+                    </h3>
+                    <p class="mt-4 max-w-3xl mx-auto text-md leading-7 text-slate-600">
+                        会場内の全パビリオン情報です。国・地域については、外務省の海外安全情報（危険レベル）と日本からの距離を併記しています。
+                    </p>
+                </div>
+                <div class="mt-12 max-w-7xl mx-auto">
+                    <!-- Filter Controls -->
+                    <div class="p-4 mb-8 bg-white rounded-xl shadow-sm">
+                        <div class="space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4 filter-btn-group" id="areaFilterContainer">
+                                <span class="self-start sm:self-center text-sm font-medium mr-2 text-slate-600 flex-shrink-0">エリア:</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <!-- Area Buttons will be inserted by JS -->
+                                </div>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4 filter-btn-group" id="levelFilterContainer">
+                                <span class="self-start sm:self-center text-sm font-medium mr-2 text-slate-600 flex-shrink-0">危険度:</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <!-- Level Buttons will be inserted by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="text" id="searchInput" placeholder="パビリオン名、国名で検索..." class="w-full p-3 border border-slate-300 rounded-lg mb-6 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                    <noscript>
+                        <p class="text-center text-red-600 bg-red-100 p-2 rounded-lg my-2">
+                            検索や絞り込み機能を利用するには、ブラウザのJavaScriptを有効にしてください。
+                        </p>
+                    </noscript>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border-slate-200 responsive-table">
+                            <thead class="bg-slate-100">
+                                <tr>
+                                    <th class="p-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                        <span id="sortLocation" class="flex items-center sort-btn">場所<span class="sort-indicator ml-2">▲</span></span>
+                                    </th>
+                                    <th class="p-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                        <span id="sortName" class="flex items-center sort-btn">パビリオン名<span class="sort-indicator ml-2">▲</span></span>
+                                    </th>
+                                    <th class="p-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                        <span id="sortLevel" class="flex items-center sort-btn">危険レベル<span class="sort-indicator ml-2">▲</span></span>
+                                    </th>
+                                     <th class="p-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                        <span id="sortDistance" class="flex items-center sort-btn">日本からの距離<span class="sort-indicator ml-2">▲</span></span>
+                                    </th>
+                                    <th class="p-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                        読売記事
+                                    </th>
+                                    <th class="p-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                        公式サイト
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="pavilionTableBody" class="divide-y divide-slate-200 md:divide-y-0">
+                                <!-- Static HTML content will be inserted here by JS on initial load -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-white">
+        <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-slate-400">
+            <p class="text-sm">インタラクティブ・レポート：2025年大阪・関西万博</p>
+            <p class="text-xs mt-2">このアプリケーションはデモンストレーション用に生成されました。危険レベルは外務省の情報を参考にしていますが、渡航の際は必ず最新の公式情報をご確認ください。</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pavilionData = [
+                // S(セービングゾーン)
+                { location: 'S01', name: 'イスラエル（コモンズＣ館）', level: 3, distance: 9500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'ウクライナ（コモンズＣ館）', level: 4, distance: 8200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'ウルグアイ（コモンズＣ館）', level: 1, distance: 18400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'ガボン（コモンズＣ館）', level: 1, distance: 12000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'グアテマラ（コモンズＣ館）', level: 2, distance: 12500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'クロアチア（コモンズＣ館）', level: 1, distance: 9200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'サンマリノ（コモンズＣ館）', level: 1, distance: 9800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'スロバキア（コモンズＣ館）', level: 1, distance: 8900, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'スロベニア（コモンズＣ館）', level: 1, distance: 9300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'パナマ（コモンズＣ館）', level: 1, distance: 13700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S01', name: 'モンテネグロ（コモンズＣ館）', level: 1, distance: 9300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsC/', officialLink: '#' },
+                { location: 'S02', name: 'チリ', level: 1, distance: 17200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Chile/', officialLink: 'https://www.nippon.com/ja/guide-to-japan/expo2025043/' },
+                { location: 'S03', name: 'チュニジア', level: 2, distance: 10200, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/tunisia/' },
+                { location: 'S04', name: 'カンボジア', level: 1, distance: 4300, link: '#', officialLink: 'https://www.nippon.com/ja/guide-to-japan/expo2025085/' },
+                { location: 'S05', name: 'アルジェリア', level: 3, distance: 10600, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/algeria/' },
+                { location: 'S06', name: 'エストニア（バルト館）', level: 1, distance: 8000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Balt/', officialLink: '#' },
+                { location: 'S06', name: 'ラトビア（バルト館）', level: 1, distance: 8000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Balt/', officialLink: '#' },
+                { location: 'S06', name: 'リトアニア（バルト館）', level: 1, distance: 8000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Balt/', officialLink: '#' },
+                { location: 'S07', name: '欧州連合', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Europe/', officialLink: 'https://www.expo2025.or.jp/official-participant/eu/' },
+                { location: 'S08', name: 'ベルギー', level: 1, distance: 9400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Belgium/', officialLink: 'https://www.expo2025.or.jp/official-participant/belgium/' },
+                { location: 'S09', name: 'イタリア（イタリア・バチカン館）', level: 1, distance: 9800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Italy/', officialLink: 'https://www.expo2025.or.jp/official-participant/italy/' },
+                { location: 'S09', name: 'バチカン（イタリア・バチカン館）', level: 1, distance: 9800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Italy/', officialLink: 'https://www.expo2025.or.jp/official-participant/italy/' },
+                { location: 'S11', name: 'シンガポール', level: 1, distance: 5300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Singapore/', officialLink: 'https://www.expo2025.or.jp/official-participant/singapore/' },
+                { location: 'S12', name: 'ブルガリア', level: 1, distance: 8900, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/bulgaria/' },
+                { location: 'S13', name: 'オランダ', level: 1, distance: 9300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Netherlands/', officialLink: 'https://www.expo2025.or.jp/official-participant/netherlands/' },
+                { location: 'S14', name: 'アンティグア・バーブーダ（コモンズＤ館）', level: 1, distance: 12900, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'カメルーン（コモンズＤ館）', level: 2, distance: 12300, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ギニア（コモンズＤ館）', level: 2, distance: 13800, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'キューバ（コモンズＤ館）', level: 1, distance: 11800, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'コンゴ民主共和国（コモンズＤ館）', level: 3, distance: 12000, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'サントメ・プリンシペ（コモンズＤ館）', level: 1, distance: 12600, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'スーダン（コモンズＤ館）', level: 4, distance: 10400, link: '#', officialLink: '#' },
+                { location: 'S14', name: '赤道ギニア（コモンズＤ館）', level: 1, distance: 12500, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'タジキスタン（コモンズＤ館）', level: 1, distance: 5900, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'トーゴ（コモンズＤ館）', level: 1, distance: 13200, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ナイジェリア（コモンズＤ館）', level: 3, distance: 12700, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'パキスタン（コモンズＤ館）', level: 3, distance: 6100, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'パレスチナ（コモンズＤ館）', level: 3, distance: 9400, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ブータン（コモンズＤ館）', level: 1, distance: 4800, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ブルキナファソ（コモンズＤ館）', level: 4, distance: 13400, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ベリーズ（コモンズＤ館）', level: 1, distance: 12400, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ホンジュラス（コモンズＤ館）', level: 2, distance: 12400, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'マーシャル（コモンズＤ館）', level: 1, distance: 5200, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'マダガスカル（コモンズＤ館）', level: 2, distance: 11200, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'マリ（コモンズＤ館）', level: 4, distance: 13200, link: '#', officialLink: '#' },
+                { location: 'S14', name: '南スーダン（コモンズＤ館）', level: 4, distance: 10800, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'モルドバ（コモンズＤ館）', level: 1, distance: 8500, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'モンゴル（コモンズＤ館）', level: 1, distance: 3000, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'ラオス（コモンズＤ館）', level: 1, distance: 4100, link: '#', officialLink: '#' },
+                { location: 'S14', name: 'リベリア（コモンズＤ館）', level: 2, distance: 14200, link: '#', officialLink: '#' },
+                { location: 'S15', name: 'オマーン', level: 1, distance: 7800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Oman/', officialLink: 'https://www.expo2025.or.jp/official-participant/oman/' },
+                { location: 'S16', name: 'ハンガリー', level: 1, distance: 9000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Hungary', officialLink: 'https://www.expo2025.or.jp/official-participant/hungary/' },
+                { location: 'S17', name: 'コモンズＥ館', level: null, distance: null, link: '#', officialLink: '#' },
+                { location: 'S18', name: '団体休憩所', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/officialblog/blog-20250627-01/' },
+                { location: 'S19', name: '団体休憩所', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/officialblog/blog-20250627-01/' },
+                { location: 'S20', name: 'ポーランド', level: 1, distance: 8600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Poland/', officialLink: 'https://www.expo2025.or.jp/official-participant/poland/' },
+                { location: 'S21', name: 'ルーマニア', level: 1, distance: 8800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Romania/', officialLink: 'https://www.expo2025.or.jp/official-participant/romania/' },
+                { location: 'S22', name: '英国', level: 1, distance: 9600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_United-Kingdom/', officialLink: 'https://www.expo2025.or.jp/official-participant/united-great-britain-and-norrn-ireland/' },
+                { location: 'S23', name: 'アンゴラ', level: 1, distance: 13000, link: '#', officialLink: 'https://www.nippon.com/ja/guide-to-japan/expo2025093/' },
+                // C(コネクティングゾーン)
+                { location: 'C01', name: 'ネパール', level: 1, distance: 4900, link: '#', officialLink: '#' },
+                { location: 'C02', name: 'ルクセンブルク', level: 1, distance: 9400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Luxembourg/', officialLink: 'https://www.expo2025.or.jp/official-participant/luxembourg/' },
+                { location: 'C03', name: 'ドイツ', level: 1, distance: 9400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Germany/', officialLink: 'https://www.expo2025.or.jp/official-participant/germany/' },
+                { location: 'C04', name: '大韓民国', level: 1, distance: 850, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Korea/', officialLink: 'https://www.expo2025.or.jp/official-participant/korea/' },
+                { location: 'C05', name: 'アルメニア（コモンズＦ館）', level: 1, distance: 7900, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsF/', officialLink: '#' },
+                { location: 'C05', name: 'カザフスタン（コモンズＦ館）', level: 1, distance: 5800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsF/', officialLink: '#' },
+                { location: 'C05', name: 'ブルネイ（コモンズＦ館）', level: 1, distance: 4100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsF/', officialLink: '#' },
+                { location: 'C06', name: 'EXPO2025 デジタルウォレットパーク', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/news/news-20250418-03/' },
+                { location: 'C07', name: 'アゼルバイジャン', level: 1, distance: 7500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Azerbaijan/', officialLink: 'https://www.expo2025.or.jp/official-participant/azerbaijan/' },
+                { location: 'C08', name: 'ポップアップステージ 北', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/popupst_n/' },
+                { location: 'C09', name: '夜の地球 Earth at Night', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/news/news-20250317-02/' },
+                { location: 'C10', name: 'モナコ', level: 1, distance: 9900, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/monaco/' },
+                { location: 'C11', name: 'トルコ', level: 2, distance: 8900, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/tur/' },
+                { location: 'C12', name: 'タイ', level: 1, distance: 4600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Thailand/', officialLink: 'https://www.expo2025.or.jp/official-participant/thailand/' },
+                { location: 'C13', name: 'スペイン', level: 1, distance: 10300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Spain/', officialLink: 'https://www.expo2025.or.jp/official-participant/spain/' },
+                { location: 'C14', name: 'サウジアラビア', level: 2, distance: 8400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_SaudiArabia/', officialLink: 'https://www.expo2025.or.jp/official-participant/saudi-arabia/' },
+                { location: 'C15', name: 'オーストラリア', level: 1, distance: 7800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Australia/', officialLink: 'https://www.expo2025.or.jp/official-participant/australia/' },
+                { location: 'C16', name: 'インドネシア', level: 2, distance: 4800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Indonesia/', officialLink: 'https://www.expo2025.or.jp/official-participant/indonesia/' },
+                { location: 'C17', name: 'インド', level: 2, distance: 5100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_India/', officialLink: 'https://www.expo2025.or.jp/official-participant/india/' },
+                { location: 'C18', name: 'ウズベキスタン', level: 1, distance: 5500, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/uzbekistan/' },
+                { location: 'C19', name: 'セルビア', level: 1, distance: 9200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Serbia/', officialLink: 'https://www.expo2025.or.jp/official-participant/serbia/' },
+                { location: 'C20', name: 'バングラディシュ', level: 2, distance: 4900, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Bangladesh/', officialLink: 'https://www.expo2025.or.jp/official-participant/bangladesh/' },
+                { location: 'C21', name: 'セネガル', level: 1, distance: 13900, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/senegal/' },
+                { location: 'C22', name: 'エジプト', level: 2, distance: 9600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Egypt/', officialLink: 'https://www.expo2025.or.jp/official-participant/egypt/' },
+                { location: 'C23', name: 'エチオピア（コモンズＢ館）', level: 2, distance: 10400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'カーボベルデ（コモンズＢ館）', level: 1, distance: 14500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ガイアナ（コモンズＢ館）', level: 1, distance: 14500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ガンビア（コモンズＢ館）', level: 1, distance: 14000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'コートジボアール（コモンズＢ館）', level: 2, distance: 13900, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ザンビア（コモンズＢ館）', level: 1, distance: 12500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'シエラレオネ（コモンズＢ館）', level: 2, distance: 14100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ジブチ（コモンズＢ館）', level: 2, distance: 10200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ジャマイカ（コモンズＢ館）', level: 1, distance: 12500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ジンバブエ（コモンズＢ館）', level: 1, distance: 12700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'セントビンセント及びグレナディーン諸島（コモンズＢ館）', level: 1, distance: 13600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ソマリア（コモンズＢ館）', level: 4, distance: 10500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'タンザニア（コモンズＢ館）', level: 1, distance: 11500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'チャド（コモンズＢ館）', level: 3, distance: 11700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: '中央アフリカ（コモンズＢ館）', level: 4, distance: 11800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ツバル（コモンズＢ館）', level: 1, distance: 6600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ドミニカ共和国（コモンズＢ館）', level: 1, distance: 12800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ナウル（コモンズＢ館）', level: 1, distance: 5200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ハイチ（コモンズＢ館）', level: 4, distance: 12600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'パラグアイ（コモンズＢ館）', level: 1, distance: 18000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: '東ティモール（コモンズＢ館）', level: 1, distance: 4800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'フィジー（コモンズＢ館）', level: 1, distance: 7100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ベナン（コモンズＢ館）', level: 2, distance: 13100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'ミクロネシア（コモンズＢ館）', level: 1, distance: 4000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'モーリタニア（コモンズＢ館）', level: 3, distance: 13400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                { location: 'C23', name: 'レソト（コモンズＢ館）', level: 1, distance: 13500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_commons-B/', officialLink: '#' },
+                // P(エンパワーリングゾーン)
+                { location: 'P01', name: 'アイルランド', level: 1, distance: 9600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Ireland/', officialLink: 'https://www.expo2025.or.jp/official-participant/ireland/' },
+                { location: 'P02', name: 'マレーシア', level: 1, distance: 5300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Malaysia/', officialLink: 'https://www.expo2025.or.jp/official-participant/malaysia/' },
+                { location: 'P03', name: 'イエメン（コモンズＡ館）', level: 4, distance: 8800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ウガンダ（コモンズＡ館）', level: 1, distance: 11200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'エスワティニ（コモンズＡ館）', level: 1, distance: 13400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ガーナ（コモンズＡ館）', level: 1, distance: 13500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: '北マケドニア（コモンズＡ館）', level: 1, distance: 9200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ギニアビサウ（コモンズＡ館）', level: 2, distance: 14100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'キルギス（コモンズＡ館）', level: 1, distance: 5100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'グレナダ（コモンズＡ館）', level: 1, distance: 13700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ケニア（コモンズＡ館）', level: 1, distance: 11200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'コソボ（コモンズＡ館）', level: 1, distance: 9200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'コモロ（コモンズＡ館）', level: 1, distance: 10800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'サモア（コモンズＡ館）', level: 1, distance: 7600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'スリナム（コモンズＡ館）', level: 1, distance: 15000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'スリランカ（コモンズＡ館）', level: 1, distance: 6700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'セーシェル（コモンズＡ館）', level: 1, distance: 9700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'セントクリストファー・ネービス（コモンズＡ館）', level: 1, distance: 13000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'セントルシア（コモンズＡ館）', level: 1, distance: 13600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ソロモン（コモンズＡ館）', level: 1, distance: 5700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'トリニダード・トバゴ（コモンズＡ館）', level: 1, distance: 14000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'トンガ（コモンズＡ館）', level: 1, distance: 7800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'バヌアツ（コモンズＡ館）', level: 1, distance: 6500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'パプアニューギニア（コモンズＡ館）', level: 2, distance: 5000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'パラオ（コモンズＡ館）', level: 1, distance: 3200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'バルバドス（コモンズＡ館）', level: 1, distance: 13800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ブルンジ（コモンズＡ館）', level: 2, distance: 11700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ボリビア（コモンズＡ館）', level: 1, distance: 17000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'マラウイ（コモンズＡ館）', level: 1, distance: 12200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'モーリシャス（コモンズＡ館）', level: 1, distance: 10500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P03', name: 'ルワンダ（コモンズＡ館）', level: 1, distance: 11600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_CommonsA/', officialLink: '#' },
+                { location: 'P04', name: 'ヨルダン', level: 2, distance: 9200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Jordan/', officialLink: '#' },
+                { location: 'P05', name: 'ペルー', level: 2, distance: 15500, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Peru/', officialLink: 'https://www.expo2025.or.jp/official-participant/peru/' },
+                { location: 'P07', name: '空飛ぶクルマ ステーション', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/future-index/smart-mobility/advanced-air-mobility/' },
+                { location: 'P08', name: 'モザンビーク', level: 2, distance: 12800, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/mozambique/' },
+                { location: 'P09', name: 'フィリピン', level: 2, distance: 3000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Philippines/', officialLink: 'https://www.expo2025.or.jp/official-participant/philippines/' },
+                { location: 'P10', name: 'ポップアップステージ 東内', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/popupst_e1/' },
+                { location: 'P11', name: 'アメリカ合衆国', level: 1, distance: 10100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_USA/', officialLink: 'https://www.expo2025.or.jp/official-participant/united-states-of-america/' },
+                { location: 'P12', name: 'フランス', level: 1, distance: 9700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_France/', officialLink: 'https://www.expo2025.or.jp/official-participant/france/' },
+                { location: 'P13', name: 'フェスティバル・ステーション', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/festival_st/' },
+                { location: 'P14', name: 'ロボット＆モビリティステーション', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/future-index/smart-mobility/robot/' },
+                { location: 'P15', name: 'ベトナム', level: 1, distance: 3600, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/vietnam/' },
+                { location: 'P16', name: 'ミャクミャクハウス', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/officialblog/blog-20250730-myakuhouse/' },
+                { location: 'P17', name: 'カタール', level: 1, distance: 8200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Qatar/', officialLink: 'https://www.expo2025.or.jp/official-participant/qatar/' },
+                { location: 'P18', name: 'アラブ首長国連邦', level: 1, distance: 7900, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/uae/' },
+                { location: 'P19', name: 'カナダ', level: 1, distance: 8100, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/canada/' },
+                { location: 'P20', name: 'ポルトガル', level: 1, distance: 10600, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/portugal/' },
+                { location: 'P21', name: 'コロンビア', level: 2, distance: 14200, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/colombia/' },
+                { location: 'P22', name: 'スイス', level: 1, distance: 9600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Switzerland/', officialLink: 'https://www.expo2025.or.jp/official-participant/switzerland/' },
+                { location: 'P23', name: 'オーストリア', level: 1, distance: 9100, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Austria/', officialLink: 'https://www.expo2025.or.jp/official-participant/austria/' },
+                { location: 'P25', name: '団体休憩所', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/officialblog/blog-20250627-01/' },
+                { location: 'P26', name: 'ブラジル', level: 2, distance: 17400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Brazil/', officialLink: 'https://www.youtube.com/watch?v=L7lZfZHZGZA' },
+                { location: 'P27', name: 'クウェート', level: 1, distance: 8000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Kuwait/', officialLink: 'https://www.expo2025.or.jp/official-participant/kuwait/' },
+                { location: 'P28', name: '中華人民共和国', level: 1, distance: 1400, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_China/', officialLink: 'https://www.expo2025.or.jp/official-participant/china/' },
+                { location: 'P29', name: '国際機関館', level: null, distance: null, link: '#', officialLink: '#' },
+                { location: 'P30', name: '国際連合', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_United-Nations/', officialLink: 'https://www.expo2025.or.jp/official-participant/un/' },
+                { location: 'P31', name: '国際赤十字・赤新月運動', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_RedCross_RedCrescent/', officialLink: 'https://www.expo2025.or.jp/official-participant/ircandrcm/' },
+                { location: 'P32', name: 'パビリオン／イベント当日登録・免税センター', level: null, distance: null, link: '#', officialLink: '#' },
+                { location: 'P34', name: 'バーレーン', level: 1, distance: 8200, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/bahrain/' },
+                { location: 'P35', name: 'トルクメニスタン', level: 1, distance: 6300, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Turkmenistan/', officialLink: 'https://www.expo2025.or.jp/official-participant/turkmenistan/' },
+                { location: 'P36', name: 'アイスランド（北欧館）', level: 1, distance: 8600, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_nordic/', officialLink: 'https://www.expo2025.or.jp/official-participant/finland/' },
+                { location: 'P36', name: 'スウェーデン（北欧館）', level: 1, distance: 8200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_nordic/', officialLink: 'https://www.expo2025.or.jp/official-participant/finland/' },
+                { location: 'P36', name: 'デンマーク（北欧館）', level: 1, distance: 8700, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_nordic/', officialLink: 'https://www.expo2025.or.jp/official-participant/finland/' },
+                { location: 'P36', name: 'ノルウェー（北欧館）', level: 1, distance: 8200, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_nordic/', officialLink: 'https://www.expo2025.or.jp/official-participant/finland/' },
+                { location: 'P36', name: 'フィンランド（北欧館）', level: 1, distance: 7800, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_nordic/', officialLink: 'https://www.expo2025.or.jp/official-participant/finland/' },
+                { location: 'P37', name: 'マルタ', level: 1, distance: 10000, link: '#', officialLink: 'https://www.expo2025.or.jp/official-participant/malta/' },
+                { location: 'P38', name: 'チェコ', level: 1, distance: 9000, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Czech/', officialLink: 'https://www.expo2025.or.jp/official-participant/czech/' },
+                // W, E, X (企業・団体パビリオン)
+                { location: 'W01', name: 'テーマウィークスタジオ', level: null, distance: null, link: '#', officialLink: '#' },
+                { location: 'W02', name: 'TECH WORLD', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/domestic-pv/tamayama/' },
+                { location: 'W03', name: 'ガスパビリオン おばけワンダーランド', level: null, distance: null, link: 'https://www.yomiuri.co.jp/expo2025/pavilion/20240411-OYT1T50120/', officialLink: 'https://www.expo2025.or.jp/corporate-pv/gas/' },
+                { location: 'W04', name: '飯田グループ Ｘ 大阪公立大学共同出展館', level: null, distance: null, link: 'https://www.yomiuri.co.jp/expo2025/pavilion/20240411-OYT1T50121/', officialLink: 'https://www.expo2025.or.jp/corporate-pv/iida/' },
+                { location: 'W05', name: 'ORA外食パビリオン「宴～UTAGE～」', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/corporate-pv/ora/' },
+                { location: 'W06', name: 'BLUE OCEAN DOME', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Blue-Ocean-Dome/', officialLink: 'https://www.expo2025.or.jp/domestic-pv/zeri/' },
+                { location: 'W07', name: 'GUNDAM NEXT FUTURE PAVILION', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_GUNDAM/', officialLink: 'https://www.bandainamco.co.jp/gundam-next-future-pavilion/index.php' },
+                { location: 'W08', name: 'ポップアップステージ 西', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/popupst_w/' },
+                { location: 'W09', name: 'PASONA NATUREVERSE', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_PASONA/', officialLink: 'https://www.expo2025.or.jp/corporate-pv/pasona/' },
+                { location: 'W10', name: 'よしもと waraii myraii館', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Yoshimoto-Pavilion/', officialLink: 'https://www.expo2025.or.jp/corporate-pv/yoshimoto/' },
+                { location: 'W11', name: 'EXPOメッセ「WASSE」', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/expomesse/' },
+                { location: 'E01', name: '関西パビリオン', level: null, distance: null, link: 'https://www.yomiuri.co.jp/expo2025/pavilion/20240411-OYT1T50122/', officialLink: 'https://www.expo2025.or.jp/domestic-pv/kansai/' },
+                { location: 'E02', name: '大阪ヘルスケアパビリオン Nest for Reborn', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Osaka/', officialLink: 'https://www.expo2025.or.jp/domestic-pv/osaka/' },
+                { location: 'E03', name: 'NTTパビリオン', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_NTT/', officialLink: 'https://www.expo2025.or.jp/corporate-pv/ntt/' },
+                { location: 'E04', name: 'ポップアップステージ 東外', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/popupst_e2/' },
+                { location: 'E05', name: '三菱未来館', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/corporate-pv/mitsubishi/' },
+                { location: 'E06', name: 'パナソニックグループ パビリオン「ノモの国」', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Panasonic/', officialLink: 'https://www.expo2025.or.jp/corporate-pv/panasonic/' },
+                { location: 'E07', name: '住友館', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/corporate-pv/sumitomo/' },
+                { location: 'E08', name: '電力館 可能性のタマゴたち', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Denryokukan/', officialLink: 'https://www.expo2025.or.jp/domestic-pv/electric/' },
+                { location: 'E09', name: 'ウーマンズパビリオン in collaboration with Cartier', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Womenspavilion/', officialLink: 'https://www.expo2025.or.jp/domestic-pv/womens-pv/' },
+                { location: 'E10', name: '日本館', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Japan/', officialLink: 'https://2025-japan-pavilion.go.jp/' },
+                { location: 'E11', name: 'EXPOホール「シャインハット」', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/expohall/' },
+                { location: 'E12', name: 'EXPOナショナルデーホール「レイガーデン」', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/exponationaldayhall/' },
+                { location: 'E13', name: 'ギャラリー EAST', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/gallery_e/' },
+                { location: 'E14', name: 'ラウンジ＆ダイニング', level: null, distance: null, link: '#', officialLink: 'https://lounge-dining-expo.jp/banpaku/' },
+                { location: 'E15', name: 'ポップアップステージ 南', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025.or.jp/expo-map-index/main-facilities/popupst_s/' },
+                { location: 'X01', name: 'Better Co-Being', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/Better_Co_Being/', officialLink: 'https://co-being.jp/expo2025/' },
+                { location: 'X02', name: 'いのちの未来', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Ishiguro/', officialLink: 'https://expo2025future-of-life.com/' },
+                { location: 'X03', name: 'いのちの遊び場 クラゲ館', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Nakajima/', officialLink: 'https://expo2025-kuragepj.com/' },
+                { location: 'X04', name: 'null2', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_null2/', officialLink: 'https://expo2025.digitalnatureandarts.or.jp/' },
+                { location: 'X05', name: 'いのち動的平衡館', level: null, distance: null, link: '#', officialLink: 'https://www.expo2025-fukuoka-shin-ichi.jp/' },
+                { location: 'X06', name: 'いのちめぐる冒険', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Kawamori/', officialLink: 'https://shojikawamori.jp/expo2025/contents/' },
+                { location: 'X07', name: 'EARTH MART', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Koyama/', officialLink: 'https://expo2025earthmart.jp/' },
+                { location: 'X08', name: 'Dialogue Theater -いのちのあかし-', level: null, distance: null, link: 'https://www.yomiuri.co.jp/feature/titlelist/expo_Kawase/', officialLink: 'https://taichisaito-atelier.jp/works/dialogue-theater-%E5%A4%A7%E9%98%AA%E9%96%A2%E8%A5%BF%E4%B8%87%E5%8D%9A/' },
+            ];
+            
+            const tableBody = document.getElementById('pavilionTableBody');
+            const searchInput = document.getElementById('searchInput');
+            const areaFilterContainer = document.getElementById('areaFilterContainer').querySelector('.flex-wrap');
+            const levelFilterContainer = document.getElementById('levelFilterContainer').querySelector('.flex-wrap');
+            
+            const sortBtns = {
+                location: document.getElementById('sortLocation'),
+                name: document.getElementById('sortName'),
+                level: document.getElementById('sortLevel'),
+                distance: document.getElementById('sortDistance'),
+            };
+
+            let currentSort = { key: 'location', direction: 'asc' };
+            let currentFilters = { area: 'all', level: 'all' };
+
+            // --- Function to generate a single table row HTML ---
+            const createTableRow = (p) => {
+                const levelClass = { 1: 'level-1', 2: 'level-2', 3: 'level-3', 4: 'level-4' }[p.level] || 'level-none';
+                const levelText = p.level ? `レベル${p.level}` : 'N/A';
+                const distanceText = p.distance ? `${p.distance.toLocaleString()} km` : 'N/A';
+                const nameEl = `<span class="font-medium text-slate-800">${p.name}</span>`;
+                const articleLinkEl = p.link && p.link !== '#' 
+                    ? `<a href="${p.link}" target="_blank" class="text-cyan-600 hover:underline text-sm font-medium">記事を見る</a>` 
+                    : `<span class="text-slate-400 text-sm">---</span>`;
+                const officialLinkEl = p.officialLink && p.officialLink !== '#'
+                    ? `<a href="${p.officialLink}" target="_blank" class="text-cyan-600 hover:underline text-sm font-medium">公式サイト</a>`
+                    : `<span class="text-slate-400 text-sm">---</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50 transition-shadow duration-300 md:hover:shadow-md">
+                        <td data-label="場所" class="p-3 font-bold text-cyan-700">${p.location}</td>
+                        <td data-label="パビリオン名" class="p-3">${nameEl}</td>
+                        <td data-label="危険レベル" class="p-3"><span class="level-badge ${levelClass}">${levelText}</span></td>
+                        <td data-label="日本からの距離" class="p-3 text-sm text-slate-600">${distanceText}</td>
+                        <td data-label="読売記事" class="p-3">${articleLinkEl}</td>
+                        <td data-label="公式サイト" class="p-3">${officialLinkEl}</td>
+                    </tr>
+                `;
+            };
+
+            // --- Pre-render initial table on page load for non-JS users ---
+            const initialTableHTML = pavilionData
+                .sort((a, b) => a.location.localeCompare(b.location, 'ja'))
+                .map(createTableRow)
+                .join('');
+            tableBody.innerHTML = initialTableHTML;
+
+
+            // --- Filter Button Generation ---
+            const createFilterButtons = (container, filterType, options) => {
+                let buttonsHTML = `<button class="filter-btn px-4 py-2 text-sm font-semibold bg-white text-slate-700 rounded-full shadow-sm border border-slate-200" data-filter-type="${filterType}" data-value="all">すべて</button>`;
+                options.forEach(option => {
+                    buttonsHTML += `<button class="filter-btn px-4 py-2 text-sm font-semibold bg-white text-slate-700 rounded-full shadow-sm border border-slate-200" data-filter-type="${filterType}" data-value="${option.value}">${option.label}</button>`;
+                });
+                container.innerHTML = buttonsHTML;
+            };
+
+            const areaOptions = [...new Set(pavilionData.map(p => p.location[0]))]
+                .sort()
+                .map(area => ({ value: area, label: area }));
+            createFilterButtons(areaFilterContainer, 'area', areaOptions);
+
+            const levelOptions = [...new Set(pavilionData.map(p => p.level).filter(l => l !== null))]
+                .sort((a, b) => a - b)
+                .map(level => ({ value: level, label: `レベル${level}` }));
+            createFilterButtons(levelFilterContainer, 'level', levelOptions);
+
+
+            // --- Table Rendering Logic for Interactive Users ---
+            const renderTable = (data) => {
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-slate-500">該当するパビリオンがありません。</td></tr>`;
+                    return;
+                }
+                tableBody.innerHTML = data.map(createTableRow).join('');
+            };
+
+            const updateSortIndicators = () => {
+                Object.values(sortBtns).forEach(btn => {
+                    const indicator = btn.querySelector('.sort-indicator');
+                    indicator.style.opacity = '0.5';
+                    btn.classList.remove('active', 'asc', 'desc');
+                });
+                const activeBtn = sortBtns[currentSort.key];
+                if (activeBtn) {
+                    const indicator = activeBtn.querySelector('.sort-indicator');
+                    indicator.style.opacity = '1';
+                    activeBtn.classList.add('active', currentSort.direction);
+                }
+            };
+            
+            const filterAndRender = () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                let filteredData = pavilionData;
+
+                if (currentFilters.area !== 'all') {
+                    filteredData = filteredData.filter(p => p.location.startsWith(currentFilters.area));
+                }
+                if (currentFilters.level !== 'all') {
+                    filteredData = filteredData.filter(p => p.level == currentFilters.level);
+                }
+                if (searchTerm) {
+                    filteredData = filteredData.filter(p => p.name.toLowerCase().includes(searchTerm));
+                }
+                
+                filteredData.sort((a, b) => {
+                    const valA = a[currentSort.key];
+                    const valB = b[currentSort.key];
+                    
+                    let comparison = 0;
+                    if (valA === null) return 1;
+                    if (valB === null) return -1;
+
+                    if (typeof valA === 'string') {
+                        comparison = valA.localeCompare(valB, 'ja');
+                    } else {
+                        if (valA > valB) comparison = 1;
+                        else if (valA < valB) comparison = -1;
+                    }
+                    
+                    return currentSort.direction === 'desc' ? comparison * -1 : comparison;
+                });
+
+                renderTable(filteredData);
+                updateSortIndicators();
+            };
+
+            // --- Event Listeners ---
+            document.querySelectorAll('.filter-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const { filterType, value } = e.target.dataset;
+                    currentFilters[filterType] = value;
+                    
+                    const groupContainer = e.target.closest('.filter-btn-group');
+                    groupContainer.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    filterAndRender();
+                });
+            });
+
+            Object.keys(sortBtns).forEach(key => {
+                sortBtns[key].addEventListener('click', () => {
+                    if (currentSort.key === key) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.key = key;
+                        currentSort.direction = 'asc';
+                    }
+                    filterAndRender();
+                });
+            });
+
+            searchInput.addEventListener('input', filterAndRender);
+            
+            // --- Initial Load ---
+            document.querySelectorAll('.filter-btn[data-value="all"]').forEach(btn => btn.classList.add('active'));
+            updateSortIndicators();
+            
+            // --- Navigation Scrollspy ---
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        document.querySelectorAll('.nav-link').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px", threshold: 0 });
+
+            document.querySelectorAll('main section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // --- Mobile Menu ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            document.querySelectorAll('.nav-link-mobile').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
